@@ -137,3 +137,12 @@ resource "azurerm_log_analytics_linked_service" "management" {
   ]
 
 }
+
+resource "azurerm_security_center_subscription_pricing" "management" {
+  for_each = local.azurerm_security_center_subscription_pricing
+
+  provider = azurerm.management #Question does this need to apply to other subscriptions too? Or just managment?
+
+  tier    = each.value
+  resource_type = each.key
+}

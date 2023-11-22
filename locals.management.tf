@@ -47,3 +47,27 @@ locals {
     if resource.managed_by_module
   }
 }
+
+locals {
+  map_defender_resource_types = {
+    enableAscForApis                            = "Api"
+    enableAscForAppServices                     = "AppServices"
+    enableAscForArm                             = "??"
+    enableAscForContainers                      = "Containers"
+    enableAscForCosmosDbs                       = "CosmosDbs"
+    enableAscForCspm                            = "??"
+    enableAscForDns                             = "Dns"
+    enableAscForKeyVault                        = "KeyVaults"
+    enableAscForOssDb                           = "OpenSourceRelationalDatabases"
+    enableAscForServers                         = "VirtualMachines"
+    enableAscForServersVulnerabilityAssessments = "??"
+    enableAscForSql                             = "SqlServers"
+    enableAscForSqlOnVm                         = "SqlServersVirtualMachines"
+    enableAscForStorage                         = "StorageAccounts"
+  }
+  azurerm_security_center_subscription_pricing = {
+    for key, value in module.management_resources.configuration.archetype_config_overrides[var.root_id].parameters.Deploy-MDFC-Config :
+    map_defender_resource_types(key) => value == "DeployIfNotExists" ? "Standard" : "Free"
+    if startwith(key, "enabled")
+  }
+}
