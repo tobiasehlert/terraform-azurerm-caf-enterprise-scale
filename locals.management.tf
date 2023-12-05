@@ -48,26 +48,40 @@ locals {
   }
 }
 
+# The following locals are used to get the subscription id for each subscription
+# and compare them to ensure that the subscription id for the management group
+# is not the same as the identity or connectivity subscriptions.
+
+locals {
+  management_subscription_id   = var.subscription_id_management
+  identity_subscription_id     = var.subscription_id_identity
+  connectivity_subscription_id = var.subscription_id_connectivity
+  comparison_result = (local.management_subscription_id == local.identity_subscription_id || local.management_subscription_id == local.connectivity_subscription_id) ? 0 : 1
+}
+
+#Advanced version of map to test for each logic from resources.management.tf
 locals {
   map_defender_resource_types = {
     enableAscForApis                            = "Api"
     enableAscForAppServices                     = "AppServices"
-    enableAscForArm                             = "??"
+    enableAscForArm                             = "Arm"
     enableAscForContainers                      = "Containers"
     enableAscForCosmosDbs                       = "CosmosDbs"
-    enableAscForCspm                            = "??"
+    enableAscForCspm                            = "CloudPosture"
     enableAscForDns                             = "Dns"
     enableAscForKeyVault                        = "KeyVaults"
     enableAscForOssDb                           = "OpenSourceRelationalDatabases"
     enableAscForServers                         = "VirtualMachines"
-    enableAscForServersVulnerabilityAssessments = "??"
+    # enableAscForServersVulnerabilityAssessments = "??"
     enableAscForSql                             = "SqlServers"
-    enableAscForSqlOnVm                         = "SqlServersVirtualMachines"
+    enableAscForSqlOnVm                         = "SqlServerVirtualMachines"
     enableAscForStorage                         = "StorageAccounts"
   }
-  azurerm_security_center_subscription_pricing = {
+    
+    azurerm_security_center_subscription_pricing = {
     for key, value in module.management_resources.configuration.archetype_config_overrides[var.root_id].parameters.Deploy-MDFC-Config :
-    map_defender_resource_types(key) => value == "DeployIfNotExists" ? "Standard" : "Free"
-    if startwith(key, "enabled")
+    local.map_defender_resource_types[key] => value == "DeployIfNotExists" ? "Standard" : "Free"
+    if startswith(key, "enable")
   }
+
 }
