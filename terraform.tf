@@ -7,6 +7,7 @@ terraform {
       configuration_aliases = [
         azurerm.connectivity,
         azurerm.management,
+        azurerm.identity,
       ]
     }
     time = {

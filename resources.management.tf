@@ -146,3 +146,27 @@ resource "azurerm_security_center_subscription_pricing" "management" {
   tier    = each.value
   resource_type = each.key
 }
+
+resource "azurerm_security_center_subscription_pricing" "management" {
+    for_each = local.comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
+
+    provider = azurerm.management
+    tier = each.value
+    resource_type = each.key
+}
+
+resource "azurerm_security_center_subscription_pricing" "identity" {
+    for_each = local.comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
+
+    provider = azurerm.identity
+    tier = each.value
+    resource_type = each.key
+}
+
+resource "azurerm_security_center_subscription_pricing" "connectivity" {
+    for_each = local.comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
+
+    provider = azurerm.connectivity
+    tier = each.value
+    resource_type = each.key
+}
