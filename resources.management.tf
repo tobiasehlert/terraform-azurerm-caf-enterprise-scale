@@ -138,17 +138,16 @@ resource "azurerm_log_analytics_linked_service" "management" {
 
 }
 
-resource "azurerm_security_center_subscription_pricing" "management" {
-  for_each = local.azurerm_security_center_subscription_pricing
+resource "azurerm_security_center_subscription_pricing" "core" {
+    for_each = local.azurerm_security_center_subscription_pricing
 
-  provider = azurerm.management #Question does this need to apply to other subscriptions too? Or just managment?
-
-  tier    = each.value
-  resource_type = each.key
+    provider = azurerm
+    tier = each.value
+    resource_type = each.key
 }
 
 resource "azurerm_security_center_subscription_pricing" "management" {
-    for_each = local.comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
+    for_each = local.mgmt_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
 
     provider = azurerm.management
     tier = each.value
@@ -156,7 +155,7 @@ resource "azurerm_security_center_subscription_pricing" "management" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "identity" {
-    for_each = local.comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
+    for_each = local.identity_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
 
     provider = azurerm.identity
     tier = each.value
@@ -164,7 +163,7 @@ resource "azurerm_security_center_subscription_pricing" "identity" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "connectivity" {
-    for_each = local.comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
+    for_each = local.connectivity_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
 
     provider = azurerm.connectivity
     tier = each.value
