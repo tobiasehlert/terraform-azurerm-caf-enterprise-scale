@@ -154,12 +154,19 @@ resource "azurerm_security_center_subscription_pricing" "management" {
     resource_type = each.key
 }
 
-resource "azurerm_security_center_subscription_pricing" "identity" {
+resource "azapi_update_resource" "identity" {
     for_each = local.identity_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
 
-    provider = azurerm.identity
-    tier = each.value
-    resource_type = each.key
+    type = "Microsoft.Security/pricings@2022-03-01"
+    name = each.key
+    parent_id = "/subscriptions/${local.identity_subscription_id}"
+
+    body = jsonencode({
+        properties = {
+            pricingTier = each.value
+        }
+    })
+
 }
 
 resource "azurerm_security_center_subscription_pricing" "connectivity" {
