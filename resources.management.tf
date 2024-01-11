@@ -161,7 +161,6 @@ resource "azapi_update_resource" "identity" {
             subPlan = each.value.subplan
         }
     })
-
 }
 
 resource "azurerm_security_center_subscription_pricing" "connectivity" {

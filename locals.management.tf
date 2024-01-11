@@ -48,10 +48,6 @@ locals {
   }
 }
 
-# ONly way I could get the Core subscription ID. Confirmation required if this can be used.
-
-data "azurerm_client_config" "core" {}
-
 # The following locals are used to get the subscription id for each subscription
 # and compare them to ensure that the subscription id for the management group
 # is not the same as the identity or connectivity subscriptions.
