@@ -57,37 +57,78 @@ data "azurerm_client_config" "core" {}
 # is not the same as the identity or connectivity subscriptions.
 
 locals {
-  core_subscription_id         = data.azurerm_client_config.core.subscription_id # Confirmation required if this can be used.
-  management_subscription_id   = var.subscription_id_management # Is this the best way to get the subscription ID?
-  identity_subscription_id     = var.subscription_id_identity # Is this the best way to get the subscription ID?
-  connectivity_subscription_id = var.subscription_id_connectivity # Is this the best way to get the subscription ID?
-  mgmt_comparison_result = (local.core_subscription_id == local.management_subscription_id ||local.management_subscription_id == "" ) ? 0 : 1
-  identity_comparison_result = (local.core_subscription_id == local.identity_subscription_id ||local.identity_subscription_id == "" ) ? 0 : 1
-  connectivity_comparison_result = (local.core_subscription_id == local.connectivity_subscription_id ||local.connectivity_subscription_id == "" ) ? 0 : 1
+  management_subscription_id   = var.subscription_id_management
+  identity_subscription_id     = var.subscription_id_identity
+  connectivity_subscription_id = var.subscription_id_connectivity
+  mgmt_comparison_result = (local.management_subscription_id == local.identity_subscription_id ||local.connectivity_subscription_id == "" ) ? 0 : 1
+  identity_comparison_result = (local.identity_subscription_id == local.management_subscription_id ||local.connectivity_subscription_id == "" ) ? 0 : 1
+  connectivity_comparison_result = (local.connectivity_subscription_id == local.management_subscription_id ||local.identity_subscription_id == "" ) ? 0 : 1
 }
 
 #Advanced version of map to test for each logic from resources.management.tf
 locals {
   map_defender_resource_types = {
-    enableAscForApis                            = "Api"
-    enableAscForAppServices                     = "AppServices"
-    enableAscForArm                             = "Arm"
-    enableAscForContainers                      = "Containers"
-    enableAscForCosmosDbs                       = "CosmosDbs"
-    enableAscForCspm                            = "CloudPosture"
-    enableAscForDns                             = "Dns"
-    enableAscForKeyVault                        = "KeyVaults"
-    enableAscForOssDb                           = "OpenSourceRelationalDatabases"
-    enableAscForServers                         = "VirtualMachines"
-    # enableAscForServersVulnerabilityAssessments = "??"
-    enableAscForSql                             = "SqlServers"
-    enableAscForSqlOnVm                         = "SqlServerVirtualMachines"
-    enableAscForStorage                         = "StorageAccounts"
+    enableAscForApis                            = {
+                                                    key = "Api"
+                                                    subplan = "P1"
+                                                  }
+    enableAscForAppServices                     = {
+                                                    key = "AppServices"
+                                                    subplan = null
+                                                  }
+    enableAscForArm                             = {
+                                                    key = "Arm"
+                                                    subplan = "PerSubscription"
+                                                  }
+    enableAscForContainers                      = {
+                                                    key = "Containers"
+                                                    subplan = null
+                                                  }
+    enableAscForCosmosDbs                       = {
+                                                    key = "CosmosDbs"
+                                                    subplan = null
+                                                  }
+    enableAscForCspm                            = {
+                                                    key = "CloudPosture"
+                                                    subplan = null
+                                                  }
+    enableAscForDns                             = {
+                                                    key = "Dns"
+                                                    subplan = null
+                                                  }
+    enableAscForKeyVault                        = {
+                                                    key = "KeyVaults"
+                                                    subplan = "PerKeyVault"
+                                                  }
+    enableAscForOssDb                           = {
+                                                    key = "OpenSourceRelationalDatabases"
+                                                    subplan = null
+                                                  }
+    enableAscForServers                         = {
+                                                    key = "VirtualMachines"
+                                                    subplan = "P1"
+                                                  }
+  # enableAscForServersVulnerabilityAssessments = ""
+    enableAscForSql                             = {
+                                                    key = "SqlServers"
+                                                    subplan = null
+                                                  }
+    enableAscForSqlOnVm                         = {
+                                                    key = "SqlServerVirtualMachines"
+                                                    subplan = null
+                                                  }
+    enableAscForStorage                         = {
+                                                    key = "StorageAccounts"
+                                                    subplan = "PerTransaction"
+                                                  }
   }
     
     azurerm_security_center_subscription_pricing = {
     for key, value in module.management_resources.configuration.archetype_config_overrides[var.root_id].parameters.Deploy-MDFC-Config :
-    local.map_defender_resource_types[key] => value == "DeployIfNotExists" ? "Standard" : "Free"
+    local.map_defender_resource_types[key].key => {
+      tier = value == "DeployIfNotExists" ? "Standard" : "Free"
+      subplan = value == "DeployIfNotExists" ? local.map_defender_resource_types[key].subplan : null
+    }
     if startswith(key, "enable")
   }
 

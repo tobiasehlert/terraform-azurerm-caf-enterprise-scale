@@ -138,19 +138,12 @@ resource "azurerm_log_analytics_linked_service" "management" {
 
 }
 
-resource "azurerm_security_center_subscription_pricing" "core" {
-    for_each = local.azurerm_security_center_subscription_pricing
-
-    provider = azurerm
-    tier = each.value
-    resource_type = each.key
-}
-
 resource "azurerm_security_center_subscription_pricing" "management" {
     for_each = local.mgmt_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
 
     provider = azurerm.management
-    tier = each.value
+    tier = each.value.tier
+    subplan = each.value.subplan
     resource_type = each.key
 }
 
@@ -160,10 +153,12 @@ resource "azapi_update_resource" "identity" {
     type = "Microsoft.Security/pricings@2022-03-01"
     name = each.key
     parent_id = "/subscriptions/${local.identity_subscription_id}"
+    locks = [local.identity_subscription_id]
 
     body = jsonencode({
         properties = {
-            pricingTier = each.value
+            pricingTier = each.value.tier
+            subPlan = each.value.subplan
         }
     })
 
@@ -173,6 +168,7 @@ resource "azurerm_security_center_subscription_pricing" "connectivity" {
     for_each = local.connectivity_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
 
     provider = azurerm.connectivity
-    tier = each.value
+    tier = each.value.tier
+    subplan = each.value.subplan
     resource_type = each.key
 }
