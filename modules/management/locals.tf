@@ -206,7 +206,7 @@ locals {
           enableAscForKeyVault                        = local.deploy_defender_for_key_vault ? "DeployIfNotExists" : "Disabled"
           enableAscForOssDb                           = local.deploy_defender_for_oss_databases ? "DeployIfNotExists" : "Disabled"
           enableAscForServers                         = local.deploy_defender_for_servers ? "DeployIfNotExists" : "Disabled"
-          # enableAscForServersVulnerabilityAssessments = local.deploy_defender_for_servers_vulnerability_assessments ? "DeployIfNotExists" : "Disabled"
+          enableAscForServersVulnerabilityAssessments = local.deploy_defender_for_servers_vulnerability_assessments ? "DeployIfNotExists" : "Disabled"
           enableAscForSql                             = local.deploy_defender_for_sql_servers ? "DeployIfNotExists" : "Disabled"
           enableAscForSqlOnVm                         = local.deploy_defender_for_sql_server_vms ? "DeployIfNotExists" : "Disabled"
           enableAscForStorage                         = local.deploy_defender_for_storage ? "DeployIfNotExists" : "Disabled"

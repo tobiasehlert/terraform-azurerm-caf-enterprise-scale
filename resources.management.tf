@@ -138,36 +138,25 @@ resource "azurerm_log_analytics_linked_service" "management" {
 
 }
 
-resource "azurerm_security_center_subscription_pricing" "management" {
-    for_each = local.mgmt_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
-
-    provider = azurerm.management
-    tier = each.value.tier
-    subplan = each.value.subplan
-    resource_type = each.key
-}
-
-resource "azapi_update_resource" "identity" {
-    for_each = local.identity_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
+# Resource block for updating Azure Defender plans.
+# It iterates over ALZ platform (identity, management, connectivity) subscriptions and updates the pricing tier and sub-plan for each subscription.
+# It uses azapi_update_resource to set the below configuration in a foreach loop over local.distinct_azurerm_security_center_subscription_pricing.
+# name - The name of the Azure Defender plan.
+# parent_id - The ID of the parent resource, which is the subscription ID.
+# locks - The subscription ID to lock the resource to ensure no update conflicts.
+# body - The JSON-encoded body of the request, containing the pricing tier and sub-plan.
+resource "azapi_update_resource" "defender_plans" {
+    for_each = local.distinct_azurerm_security_center_subscription_pricing
 
     type = "Microsoft.Security/pricings@2022-03-01"
-    name = each.key
-    parent_id = "/subscriptions/${local.identity_subscription_id}"
-    locks = [local.identity_subscription_id]
+    name = each.value.defender_plan_key
+    parent_id = "/subscriptions/${each.value.subscription_id}"
+    locks = [each.value.subscription_id]
 
     body = jsonencode({
         properties = {
-            pricingTier = each.value.tier
-            subPlan = each.value.subplan
+            pricingTier = each.value.defender_plan_tier
+            subPlan = each.value.defender_plan_subplan
         }
     })
-}
-
-resource "azurerm_security_center_subscription_pricing" "connectivity" {
-    for_each = local.connectivity_comparison_result == 1 ? local.azurerm_security_center_subscription_pricing : {}
-
-    provider = azurerm.connectivity
-    tier = each.value.tier
-    subplan = each.value.subplan
-    resource_type = each.key
 }
